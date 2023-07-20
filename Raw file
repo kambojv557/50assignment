@@ -1,0 +1,119 @@
+[root@ip-172-31-42-126 ~]# git clone https://github.com/ashishrpandey/example-voting-app
+Cloning into 'example-voting-app'...
+remote: Enumerating objects: 494, done.
+remote: Total 494 (delta 0), reused 0 (delta 0), pack-reused 494
+Receiving objects: 100% (494/494), 236.18 KiB | 13.12 MiB/s, done.
+Resolving deltas: 100% (179/179), done.
+
+[root@ip-172-31-42-126 ~]# cd  /root/example-voting-app/k8s-specifications
+[root@ip-172-31-42-126 k8s-specifications]# kubectl apply -f .
+deployment.apps/db created
+service/db created
+deployment.apps/redis created
+service/redis created
+deployment.apps/result created
+service/result created
+deployment.apps/vote created
+service/vote created
+deployment.apps/worker created
+
+[root@ip-172-31-42-126 k8s-specifications]# kubectl get po
+NAME                      READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-54knq        1/1     Running   0          7s
+redis-868d64d78-rgvdf     1/1     Running   0          7s
+result-5d57b59f4b-hl7gh   1/1     Running   0          7s
+vote-94849dc97-xxsdl      1/1     Running   0          6s
+worker-dd46d7584-x2r88    1/1     Running   0          6s
+
+[root@ip-172-31-42-126 k8s-specifications]# kubectl get svc
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+db           ClusterIP   10.102.157.27   <none>        5432/TCP         2m18s
+kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          7m21s
+redis        ClusterIP   10.108.1.221    <none>        6379/TCP         2m18s
+result       NodePort    10.99.231.4     <none>        5001:31001/TCP   2m18s
+vote         NodePort    10.103.27.213   <none>        5000:31000/TCP   2m17s
+
+[root@ip-172-31-42-126 k8s-specifications]# kubectl logs worker-dd46d7584-x2r88
+Waiting for db
+Waiting for db
+Waiting for db
+Connected to db
+Found redis at 10.108.1.221
+Connecting to redis
+Processing vote for 'a' by '10fa95eaab68509'
+Processing vote for 'a' by '9ee062568efbf2e'
+Processing vote for 'b' by '2a8eb112d57578b'
+
+ 
+1st we delete VOTE pod 
+
+[root@ip-172-31-42-126 ~]# kubectl get po
+NAME                                   READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-54knq                     1/1     Running   0          22h
+firstapp-firstchart-86bd46c54f-dgl9z   1/1     Running   0          151m
+redis-868d64d78-rgvdf                  1/1     Running   0          22h
+result-5d57b59f4b-hl7gh                1/1     Running   0          22h
+vote-94849dc97-9hmst                   1/1     Running   0          9s
+worker-dd46d7584-x2r88                 1/1     Running   0          22h
+
+
+2nd we delete the WORKER pod  
+
+
+[root@ip-172-31-42-126 ~]# kubectl logs worker-dd46d7584-x2r88
+Waiting for db
+Waiting for db
+Waiting for db
+Connected to db
+Found redis at 10.108.1.221
+Connecting to redis
+Processing vote for 'a' by '10fa95eaab68509'
+Processing vote for 'a' by '9ee062568efbf2e'
+Processing vote for 'b' by '2a8eb112d57578b'
+Processing vote for 'b' by 'd5152da8cefeb3a'
+Processing vote for 'b' by '2b40a2fcf47e0f'
+Processing vote for 'a' by '9ee062568efbf2e'
+Processing vote for 'a' by '9ee062568efbf2e'
+
+[root@ip-172-31-42-126 ~]# kubectl delete po worker-dd46d7584-x2r88
+pod "worker-dd46d7584-x2r88" deleted
+
+
+[root@ip-172-31-42-126 ~]# kubectl get po
+NAME                                   READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-54knq                     1/1     Running   0          23h
+firstapp-firstchart-86bd46c54f-dgl9z   1/1     Running   0          3h8m
+redis-868d64d78-rgvdf                  1/1     Running   0          23h
+result-5d57b59f4b-hl7gh                1/1     Running   0          23h
+vote-94849dc97-9hmst                   1/1     Running   0          37m
+worker-dd46d7584-gx7sb                 1/1     Running   0          46s
+
+[root@ip-172-31-42-126 ~]# kubectl logs worker-dd46d7584-gx7sb
+Connected to db
+Found redis at 10.108.1.221
+Connecting to redis
+
+
+
+
+3rd once  DB pod deletd  
+
+[root@ip-172-31-42-126 ~]# kubectl get po
+NAME                                   READY   STATUS        RESTARTS   AGE
+db-b54cd94f4-4wtdx                     1/1     Running       0          10s
+db-b54cd94f4-54knq                     1/1     Terminating   0          23h
+firstapp-firstchart-86bd46c54f-dgl9z   1/1     Running       0          3h11m
+redis-868d64d78-rgvdf                  1/1     Running       0          23h
+result-5d57b59f4b-hl7gh                1/1     Running       0          23h
+vote-94849dc97-9hmst                   1/1     Running       0          40m
+worker-dd46d7584-gx7sb                 1/1     Running       0          3m16s
+
+
+[root@ip-172-31-42-126 ~]# kubectl get po
+NAME                                   READY   STATUS    RESTARTS   AGE
+db-b54cd94f4-4wtdx                     1/1     Running   0          76s
+firstapp-firstchart-86bd46c54f-dgl9z   1/1     Running   0          3h12m
+redis-868d64d78-rgvdf                  1/1     Running   0          23h
+result-5d57b59f4b-hl7gh                1/1     Running   1          23h
+vote-94849dc97-9hmst                   1/1     Running   0          41m
+worker-dd46d7584-gx7sb                 1/1     Running   1          4m22s
