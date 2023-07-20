@@ -1,0 +1,4 @@
+--------Question -2 -----------------
+We can run this command for zero downtime.
+kubectl patch deployment kubia -p '{"spec": {"minReadySeconds": 10}}'   ---- after we run this command old pod got terminated after 10 sec and new pod is running 
+for update the container image we have to run this command :- kubectl set image deployment kubia nodejs=luksa
